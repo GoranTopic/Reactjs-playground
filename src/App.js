@@ -1,9 +1,10 @@
 import React from 'react';
-import logo from './logo.svg';
 import './App.css';
 import { dic } from "./dictionary";
 
 function App() {
+
+	const handleSearch = search => console.log(search.target.value)
 
 	const data ={
 			greeting : "React",
@@ -14,30 +15,47 @@ function App() {
 		return data.greeting + " " + data.title 
 	}
 
-		//for each of the keys 
-		//	print the key 
 
   return (
 			<div>
 				<h1>{greet()}</h1>
-				<label htmlFor="search">Search: </label>
-				<input id="search" type="text"/>
+				<Search onSearch={handleSearch}/>
 				<hr/>
-				<List/>
+				<List dic={dic}/>
 			</div>
-  );
+  )
 }
 
-function List() {
+function Search(props){
+	
+	const [ searchTerm, setSearchTerm] = React.useState('');
+
+	const handleChange = change => {
+			setSearchTerm(change.target.value);
+			props.onSearch(change);
+	}
+
+	return (
+		<div>
+			<label htmlFor="search">Search: </label>
+			<input id="search" type="text" onChange={handleChange}/>
+			<p> Searching for <strong> {searchTerm}</strong></p>
+		</div>
+	)
+}
+
+
+function List(props){
 	return (
 			<div> 
-			{dic.map((item, i) => { return (
+			{props.dic.map(
+					(item, i) =>  
 						<div key={i}>
-						<a href={item.url}>{item.word}</a>
-						<p>{ Object.entries(item.definitions) }</p>
-						<hr/>
+							<a href={item.url}>{item.word}</a>
+							<p>{ Object.entries(item.definitions) }</p>
+							<hr/>
 						</div>
-			)})}
+			)}
 			</div>
 	)
 }
