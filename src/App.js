@@ -1,21 +1,22 @@
 import React from 'react';
 import './App.css';
-import { dict } from "./dictionary";
+import { dict } from "./dictionary_super_short";
 
 function App() {
 
-	//  use useState hook stat to the previous value in local storage or toe the new value of 'react'
-	const [searchTerm, setSearchTerm] = React.useState( localStorage.getItem('search') || 'react');
-
-
-	// use useEffect hook to save the state of searchterm into memeory everytime it is mutated
-	React.useEffect( () => localStorage.setItem('search', searchTerm, [searchTerm]) )
-
+	const useSemiPersistentSate = key => { 
+			const [value, setValue] = React.useState( localStorage.getItem(key) || '');
+			React.useEffect( key => localStorage.setItem(key, setValue) , [value] );
+			return [value, setValue];
+	}
+		// get state fuctions
+	const [ searchTerm, setSearchTerm] = useSemiPersistentSate('search')
+	
 	// handle the change by seting the state variable to 
 	const handleChange = change => setSearchTerm(change.target.value);
 	
 	// filter the dic with the searchedterm 
-	const searchedDict = searchTerm.length >= 2 ?  dict.filter( entry => entry.word.includes(searchTerm) ) : []
+	const searchedDict = searchTerm.length >= 1?  dict.filter( entry => entry.word.includes(searchTerm) ) : []
 
 
 	const data ={
