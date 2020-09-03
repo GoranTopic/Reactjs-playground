@@ -6,7 +6,7 @@ function App() {
 
 	const useSemiPersistentSate = key => { 
 			const [value, setValue] = React.useState( localStorage.getItem(key) || 'react');
-			React.useEffect( (key) => localStorage.setItem(key, value) , [value] );
+			React.useEffect( (key) => localStorage.setItem(key, value), [value] );
 			return [value, setValue];
 	}
 		// get state fuctions
@@ -31,7 +31,7 @@ function App() {
   return (
 			<div>
 				<h1>{greet()}</h1>
-				<InputWithLabel id="search" type="text" value={searchTerm} onInputChange={handleChange}>
+				<InputWithLabel id="search" type="text" isFocuse value={searchTerm} onInputChange={handleChange}>
 					<strong>Search:</strong>
 				</InputWithLabel>
 				<hr/>
@@ -41,13 +41,18 @@ function App() {
 }
 
 
-const InputWithLabel = ({ id, type, value, onInputChange, children }) => 
+const InputWithLabel = ({ id, type, value, onInputChange, isFocused, children }) => {
 	/*A component with the Input and a Label*/
-		<>
-			<label htmlFor={id}> {children} </label>
-			&nbsp;
-			<input id={id} type={type} value={value} onChange={onInputChange}/>
-		</>
+		const inputRef = React.useRef()
+		
+		React.useEffect(() => { if(isFocused && inputRef.current) inputRef.current.focused(); }, [isFocused])
+
+		return <>
+						<label htmlFor={id}> {children} </label>
+						&nbsp;
+						<input id={id} ref={inputRef} type={type} value={value} onChange={onInputChange}/>
+					</>
+}
 
 /*for every Item in the list pass the Itme into an Item component */
 const List = ({dict}) => dict.map( (item, iter) => <Item key = {iter}  {...item}/> )
