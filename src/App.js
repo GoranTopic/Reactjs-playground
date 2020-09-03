@@ -1,10 +1,15 @@
 import React from 'react';
 import './App.css';
-import { dic } from "./dictionary";
+import { dict } from "./dictionary";
 
 function App() {
 
-	const handleSearch = search => console.log(search.target.value)
+	const [searchTerm, setSearchTerm] = React.useState('');
+
+	const handleChange = change => setSearchTerm(change.target.value);
+	
+	
+	const searchedDict = dict.filter( entry => entry.word.includes(searchTerm) );
 
 	const data ={
 			greeting : "React",
@@ -12,34 +17,26 @@ function App() {
 	}
 
 	function greet(){
-		return data.greeting + " " + data.title 
+		return data.greeting + " " + data.title
 	}
 
 
   return (
 			<div>
 				<h1>{greet()}</h1>
-				<Search onSearch={handleSearch}/>
+				<Search onSearch={handleChange}/>
 				<hr/>
-				<List dic={dic}/>
+				<List dict={searchedDict}/>
 			</div>
   )
 }
 
 function Search(props){
-	
-	const [ searchTerm, setSearchTerm] = React.useState('');
-
-	const handleChange = change => {
-			setSearchTerm(change.target.value);
-			props.onSearch(change);
-	}
 
 	return (
 		<div>
 			<label htmlFor="search">Search: </label>
-			<input id="search" type="text" onChange={handleChange}/>
-			<p> Searching for <strong> {searchTerm}</strong></p>
+			<input id="search" type="text" onChange={props.onSearch}/>
 		</div>
 	)
 }
@@ -48,14 +45,13 @@ function Search(props){
 function List(props){
 	return (
 			<div> 
-			{props.dic.map(
+			{props.dict.map(
 					(item, i) =>  
 						<div key={i}>
 							<a href={item.url}>{item.word}</a>
-							<p>{ Object.entries(item.definitions) }</p>
+							<p>{Object.entries(item.definitions)}</p>
 							<hr/>
-						</div>
-			)}
+						</div> )}
 			</div>
 	)
 }
