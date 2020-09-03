@@ -32,7 +32,7 @@ function App() {
 			<div>
 				<h1>{greet()}</h1>
 				<InputWithLabel id="search" type="text" value={searchTerm} onInputChange={handleChange}>
-					Search:
+					<strong>Search:</strong>
 				</InputWithLabel>
 				<hr/>
 				<List dict={searchedDict}/>
