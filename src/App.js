@@ -9,13 +9,14 @@ function App() {
 
 
 	// use useEffect hook to save the state of searchterm into memeory everytime it is mutated
-	React.useEffect( ()=> localStorage.setItem('search', searchTerm, [searchTerm]) )
+	React.useEffect( () => localStorage.setItem('search', searchTerm, [searchTerm]) )
 
 	// handle the change by seting the state variable to 
 	const handleChange = change => setSearchTerm(change.target.value);
 	
 	// filter the dic with the searchedterm 
-	const searchedDict = dict.filter( entry => entry.word.includes(searchTerm) );
+	const searchedDict = searchTerm.length >= 2 ?  dict.filter( entry => entry.word.includes(searchTerm) ) : []
+
 
 	const data ={
 			greeting : "React",
@@ -46,6 +47,9 @@ function Search( {search, onSearch} ){
 		</div>
 	)
 }
+
+//const List = ({dict}) => dict.map( (item, iter) => <Item key = {iter}  {...item}/> )
+	/*for every Item in the list pass the Itme into an Item component */
 
 const List = ({dict}) => dict.map( (item, iter) => <Item key = {iter}  {...item}/> )
 	/*for every Item in the list pass the Itme into an Item component */
