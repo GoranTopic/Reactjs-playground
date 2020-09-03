@@ -4,11 +4,17 @@ import { dict } from "./dictionary";
 
 function App() {
 
-	const [searchTerm, setSearchTerm] = React.useState('react');
+	//  use useState hook stat to the previous value in local storage or toe the new value of 'react'
+	const [searchTerm, setSearchTerm] = React.useState( localStorage.getItem('search') || 'react');
 
+
+	// use useEffect hook to save the state of searchterm into memeory everytime it is mutated
+	React.useEffect( ()=> localStorage.setItem('search', searchTerm, [searchTerm]) )
+
+	// handle the change by seting the state variable to 
 	const handleChange = change => setSearchTerm(change.target.value);
 	
-	
+	// filter the dic with the searchedterm 
 	const searchedDict = dict.filter( entry => entry.word.includes(searchTerm) );
 
 	const data ={
@@ -41,18 +47,16 @@ function Search( {search, onSearch} ){
 	)
 }
 
-//for every Item in the list pass the Itme into an Item component 
-const List = ({dict}) => dict.map( (item, iter) => <Item key = {iter} item={item}/> )
+const List = ({dict}) => dict.map( (item, iter) => <Item key = {iter}  {...item}/> )
+	/*for every Item in the list pass the Itme into an Item component */
 
 
-
-
-const Item = ({item}) => {
+const Item = ({ word, url, definitions }) => {
 	/* item fuction for rendering a single word*/
 	return (
 			<div> 
-				<a href={item.url}>{item.word}</a>
-				<p>{Object.entries(item.definitions)}</p>
+				<a href={url}>{word}</a>
+				<p>{Object.entries(definitions)}</p>
 				<hr/>
 			</div>
 	)
