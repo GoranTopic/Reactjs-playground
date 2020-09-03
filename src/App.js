@@ -5,8 +5,8 @@ import { dict } from "./dictionary_super_short";
 function App() {
 
 	const useSemiPersistentSate = key => { 
-			const [value, setValue] = React.useState( localStorage.getItem(key) || '');
-			React.useEffect( key => localStorage.setItem(key, setValue) , [value] );
+			const [value, setValue] = React.useState( localStorage.getItem(key) || 'react');
+			React.useEffect( (key) => localStorage.setItem(key, value) , [value] );
 			return [value, setValue];
 	}
 		// get state fuctions
@@ -28,43 +28,40 @@ function App() {
 		return data.greeting + " " + data.title
 	}
 
-
   return (
 			<div>
 				<h1>{greet()}</h1>
-				<Search search={searchTerm} onSearch={handleChange}/>
+				<InputWithLabel id="search" type="text" value={searchTerm} onInputChange={handleChange}>
+					Search:
+				</InputWithLabel>
 				<hr/>
 				<List dict={searchedDict}/>
 			</div>
   )
 }
 
-function Search( {search, onSearch} ){
-		/*fuction for returning search component*/
-	return (
-		<div>
-			<label htmlFor="search">Search: </label>
-			<input id="search" type="text" value={search} onChange={onSearch}/>
-		</div>
-	)
-}
 
-//const List = ({dict}) => dict.map( (item, iter) => <Item key = {iter}  {...item}/> )
-	/*for every Item in the list pass the Itme into an Item component */
+const InputWithLabel = ({ id, type, value, onInputChange, children }) => 
+	/*A component with the Input and a Label*/
+		<>
+			<label htmlFor={id}> {children} </label>
+			&nbsp;
+			<input id={id} type={type} value={value} onChange={onInputChange}/>
+		</>
 
+/*for every Item in the list pass the Itme into an Item component */
 const List = ({dict}) => dict.map( (item, iter) => <Item key = {iter}  {...item}/> )
-	/*for every Item in the list pass the Itme into an Item component */
 
 
 const Item = ({ word, url, definitions }) => {
 	/* item fuction for rendering a single word*/
 	return (
-			<div> 
+			<>
 				<a href={url}>{word}</a>
 				<p>{Object.entries(definitions)}</p>
 				<hr/>
-			</div>
-	)
+			</>
+		)
 }
 
 export default App;
