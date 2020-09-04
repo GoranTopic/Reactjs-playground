@@ -7,17 +7,17 @@ function App() {
 		// make a reducer for manageing the state of the entries
 	const dictReducer = (state, action) =>{
 			switch (action.type){
-				case 'SET_ENTRY':
-						return action.payload;
+				case 'SET_ENTRIES':
+					return action.payload;
 				case 'REMOVE_ENTRY':
-						return state.fileter( entry => entry.word !== action.payload.word );
+					return state.filter( entry => entry.word !== action.payload.word );
 				default:
-							throw new Error();
+					throw new Error();
 			}
 	}
 
 		//make dipatcher for the dict reducer
-	const [entries, dispathcEntries ] = React.useReducer(dictReducer, [] );
+	const [ entries, dispathcEntries ] = React.useReducer(dictReducer, [] );
 
 	const useSemiPersistentSate = key => { 
 			const [value, setValue] = React.useState( localStorage.getItem(key) || '');
@@ -25,7 +25,6 @@ function App() {
 			return [value, setValue];
 	}
 
-	const initialEntries = []
 		// get state fuctions
 	const [ searchTerm, setSearchTerm] = useSemiPersistentSate('search')
 
@@ -42,9 +41,12 @@ function App() {
 			setIsLoading(true)
 			getAsyncEntries()
 					.then(result => {
-							setEntries(result.data.entries) 
-							setIsLoading(false)
-							})
+							dispathcEntries({
+									type: 'SET_ENTRIES',
+									payload: result.data.entries
+							});
+							setIsLoading(false);
+					})
 					.catch(() => {
 							setIsError(true)
 					})
@@ -56,10 +58,11 @@ function App() {
 	const handleChange = change => setSearchTerm(change.target.value);
 	
 		// filter the dic with the searchedterm 
+		console.log(entries)
 	const searchedDict = searchTerm.length >= 1?  entries.filter( entry => entry.word.includes(searchTerm) ) : []
 
-	const RemoveEntry = entry => setEntries(entries.filter( item => entry.word !== item.word ));
-	
+		// remove entry handler
+	const RemoveEntry = entry => dispathcEntries({ type: 'REMOVE_ENTRY', payload: entry})
 	
 	const data ={
 			greeting : "React",
