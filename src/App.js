@@ -1,24 +1,66 @@
 import React from 'react';
 import './App.css';
-import { dict } from "./dictionary_super_short";
+import { dict } from "./dictionary_short_half";
 
 function App() {
 
+		// make a reducer for manageing the state of the entries
+	const dictReducer = (state, action) =>{
+			switch (action.type){
+				case 'SET_ENTRY':
+						return action.payload;
+				case 'REMOVE_ENTRY':
+						return state.fileter( entry => entry.word !== action.payload.word );
+				default:
+							throw new Error();
+			}
+	}
+
+		//make dipatcher for the dict reducer
+	const [entries, dispathcEntries ] = React.useReducer(dictReducer, [] );
+
 	const useSemiPersistentSate = key => { 
-			const [value, setValue] = React.useState( localStorage.getItem(key) || 'react');
-			React.useEffect( (key) => localStorage.setItem(key, value), [value] );
+			const [value, setValue] = React.useState( localStorage.getItem(key) || '');
+			React.useEffect( (key) => { localStorage.setItem(key, value)} , [value] );
 			return [value, setValue];
 	}
+
+	const initialEntries = []
 		// get state fuctions
 	const [ searchTerm, setSearchTerm] = useSemiPersistentSate('search')
+
+		// state to hold the words and fo the dict
+	//const [entries, setEntries ] = React.useState([]);
+		// save infromations weather the async Promis is still wating for data
+	const [isLoading, setIsLoading ] = React.useState(true);
+		// record wheather the promise got an error
+	const [isError, setIsError ] = React.useState(false);
+
+	const getAsyncEntries = () => new Promise( resolve => setTimeout( () => resolve({data: { entries: dict }}), 200 ) );
+
+	React.useEffect(() => {
+			setIsLoading(true)
+			getAsyncEntries()
+					.then(result => {
+							setEntries(result.data.entries) 
+							setIsLoading(false)
+							})
+					.catch(() => {
+							setIsError(true)
+					})
+			}, []) 
+
+
 	
-	// handle the change by seting the state variable to 
+		// handle the change by seting the state variable to 
 	const handleChange = change => setSearchTerm(change.target.value);
 	
-	// filter the dic with the searchedterm 
-	const searchedDict = searchTerm.length >= 1?  dict.filter( entry => entry.word.includes(searchTerm) ) : []
+		// filter the dic with the searchedterm 
+	const searchedDict = searchTerm.length >= 1?  entries.filter( entry => entry.word.includes(searchTerm) ) : []
 
-
+	const RemoveEntry = entry => setEntries(entries.filter( item => entry.word !== item.word ));
+	
+	
 	const data ={
 			greeting : "React",
 			title : "Dictionary",
@@ -35,7 +77,12 @@ function App() {
 					<strong>Search:</strong>
 				</InputWithLabel>
 				<hr/>
-				<List dict={searchedDict}/>
+				{ isError && <p> something whent wrong</p>}
+				{isLoading ? (
+						<p> Loading...</p>
+				):(
+						<List dict={searchedDict} onRemoveItem={RemoveEntry}/>
+				)}
 			</div>
   )
 }
@@ -55,15 +102,16 @@ const InputWithLabel = ({ id, type, value, onInputChange, isFocused, children })
 }
 
 /*for every Item in the list pass the Itme into an Item component */
-const List = ({dict}) => dict.map( (item, iter) => <Item key = {iter}  {...item}/> )
+const List = ({dict, onRemoveItem }) => dict.map( (item, iter) => <Item key={iter}  {...item} onRemoveItem={onRemoveItem}/> )
 
-
-const Item = ({ word, url, definitions }) => {
+const Item = ({ word, url, definitions, onRemoveItem }) => {
 	/* item fuction for rendering a single word*/
+		
 	return (
 			<>
 				<a href={url}>{word}</a>
 				<p>{Object.entries(definitions)}</p>
+				<button type="button" onClick={() => onRemoveItem({ "word": word })}> Dissmiss </button>
 				<hr/>
 			</>
 		)
