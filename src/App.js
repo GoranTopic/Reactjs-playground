@@ -6,18 +6,39 @@ function App() {
 
 		// make a reducer for manageing the state of the entries
 	const dictReducer = (state, action) =>{
-			switch (action.type){
-				case 'SET_ENTRIES':
-					return action.payload;
-				case 'REMOVE_ENTRY':
-					return state.filter( entry => entry.word !== action.payload.word );
-				default:
-					throw new Error();
-			}
+		switch (action.type){
+			case 'SET_FETCH_INIT':
+				return { 
+					...state, 
+					isLoading: true,
+					isError: false 
+				};
+			case 'SET_FETCH_SUCCESS':
+				return {
+					...state,
+					isLoading: false,
+					isError: false,
+					data: action.payload,
+				};
+			case 'SET_FETCH_FAILED':
+				return {
+					...state,
+					isLoading: false,
+					isError: true,
+				};
+			case 'REMOVE_ENTRY':
+				return {
+					...state, 
+					data: state.data.filter( entry => entry.word !== action.payload.word ),
+				}
+			default:
+				throw new Error();
+		}
 	}
 
-		//make dipatcher for the dict reducer
-	const [ entries, dispathcEntries ] = React.useReducer(dictReducer, [] );
+		// make dipatcher for the dict reducer nad set initial state
+ 	const [entries, dispatchEntries] = React.useReducer( dictReducer, {data: [], IsLoading: false, isError: false } );
+
 
 	const useSemiPersistentSate = key => { 
 			const [value, setValue] = React.useState( localStorage.getItem(key) || '');
@@ -28,41 +49,24 @@ function App() {
 		// get state fuctions
 	const [ searchTerm, setSearchTerm] = useSemiPersistentSate('search')
 
-		// state to hold the words and fo the dict
-	//const [entries, setEntries ] = React.useState([]);
-		// save infromations weather the async Promis is still wating for data
-	const [isLoading, setIsLoading ] = React.useState(true);
-		// record wheather the promise got an error
-	const [isError, setIsError ] = React.useState(false);
+	const getAsyncEntries = () => new Promise( (resolve, reject) => setTimeout( () => resolve({data: { entries: dict }}), 200 ) );
 
-	const getAsyncEntries = () => new Promise( resolve => setTimeout( () => resolve({data: { entries: dict }}), 200 ) );
-
+		// use effect to load up the data for the inital state
 	React.useEffect(() => {
-			setIsLoading(true)
-			getAsyncEntries()
-					.then(result => {
-							dispathcEntries({
-									type: 'SET_ENTRIES',
-									payload: result.data.entries
-							});
-							setIsLoading(false);
-					})
-					.catch(() => {
-							setIsError(true)
-					})
-			}, []) 
+		dispatchEntries({ type: 'SET_FETCH_INIT'});
+		getAsyncEntries()
+			.then( result => dispatchEntries({ type: 'SET_FETCH_SUCCESS', payload: result.data.entries }) )
+			.catch( () => dispatchEntries({ type: 'SET_FETCH_FAILED' }) );
+	}, []);
 
-
-	
 		// handle the change by seting the state variable to 
 	const handleChange = change => setSearchTerm(change.target.value);
 	
 		// filter the dic with the searchedterm 
-		console.log(entries)
-	const searchedDict = searchTerm.length >= 1?  entries.filter( entry => entry.word.includes(searchTerm) ) : []
+	const searchedDict = searchTerm.length >= 1?  entries.data.filter( entry => entry.word.includes(searchTerm.toLowerCase()) ) : []
 
 		// remove entry handler
-	const RemoveEntry = entry => dispathcEntries({ type: 'REMOVE_ENTRY', payload: entry})
+	const RemoveEntry = entry => dispatchEntries({ type: 'REMOVE_ENTRY', payload: entry})
 	
 	const data ={
 			greeting : "React",
@@ -80,8 +84,8 @@ function App() {
 					<strong>Search:</strong>
 				</InputWithLabel>
 				<hr/>
-				{ isError && <p> something whent wrong</p>}
-				{isLoading ? (
+				{ entries.isError && <p> something went wrong</p>}
+				{ entries.isLoading ? (
 						<p> Loading...</p>
 				):(
 						<List dict={searchedDict} onRemoveItem={RemoveEntry}/>
