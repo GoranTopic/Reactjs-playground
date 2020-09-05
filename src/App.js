@@ -40,11 +40,10 @@ function App() {
 				}
 		}
 
-
-
 		// define dispatcher for the stories 
 		const [stories, dispatchStories] = React.useReducer( storiesReducer, {data: [], IsLoading: false, isError: false } );
-	
+
+
 		// fuction for make a persitant state
 		const useSemiPersistentSate = key => { 
 				const [value, setValue] = React.useState( localStorage.getItem(key) || '');
@@ -52,20 +51,25 @@ function App() {
 				return [value, setValue];
 		}
 		// get state fuctions
-		const [ searchTerm, setSearchTerm] = useSemiPersistentSate('search')
+		const [ searchTerm, setSearchTerm] = useSemiPersistentSate('search');
 
 		// handle the change by seting the state variable to 
-		const handleChange = change => setSearchTerm(change.target.value);
+		const handleSearchChange = change => setSearchTerm(change.target.value);
+
+		const handleSearchSubmit = () => { setUrl(`${API_ENDPOINT}${searchTerm}`) };
 
 		// load asyc Stories
 		//const getAsyncStories = () => new Promise( (resolve, reject) => setTimeout( () => resolve({data: {}}), 200 ) );
 
+		// new definition of the url 
+		const [url, setUrl] = React.useState(`${API_ENDPOINT}${searchTerm}`)
 		// use effect to load up the data for the inital state
-		React.useEffect(() => {
+		const handleFetchStories = React.useCallback(() => {
+				if(!searchTerm) return;
 				// set the state as loading 
 				dispatchStories({ type: 'SET_FETCH_INIT'});
 				// fetch with APIA the word react?
-				fetch(`${API_ENDPOINT}react`)
+				fetch(url)
 				// traslate to json
 						.then( response => response.json() )
 				// dispatch succes result and dat to state 
@@ -74,11 +78,12 @@ function App() {
 								payload: result.hits,
 						}))
 						.catch( () => dispatchStories({ type: 'SET_FETCH_FAILED' }) );
-		}, []);
+		}, [url]);
 
-	
+		React.useEffect(() => { handleFetchStories(); }, [handleFetchStories]);
+
 		// filter the stories with the searchedterm 
-		const searchedStories = searchTerm.length >= 1?  stories.data.filter( entry => entry.title.includes(searchTerm.toLowerCase()) ) : []
+		//const searchedStories = stories.data.filter( story => story.title? story.title.includes(searchTerm.toLowerCase()): null )
 
 		// remove entry handler
 		const RemoveStory = story => dispatchStories({ type: 'REMOVE_STORIES', payload: story})
@@ -87,15 +92,18 @@ function App() {
 		return (
 				<div>
 					<h1>Imanalla to React Stories</h1>
-					<InputWithLabel id="search" type="text" isFocuse value={searchTerm} onInputChange={handleChange}>
+					<InputWithLabel id="search" type="text" isFocuse value={searchTerm} onInputChange={handleSearchChange}>
 						<strong>Search:</strong>
 					</InputWithLabel>
+					<button type="button" disable={!searchTerm} onClick={handleSearchSubmit}>
+						Search
+					</button>
 				<hr/>
 					{ stories.isError && <p> something went wrong</p> }
 					{ stories.isLoading ? (
 							<p> Loading...</p>
 						):(
-							<List list={searchedStories} onRemoveItem={RemoveStory}/>
+							<List list={stories.data} onRemoveItem={RemoveStory}/>
 						)}
 				</div>
 		)
@@ -115,10 +123,10 @@ const InputWithLabel = ({ id, type, value, onInputChange, isFocused, children })
 					</>
 }
 
-	const List = ({list , onRemoveItem }) => {
-			/*for every Item in the list pass the item into an Item component */
-			return list.map( (item, iter) => <Item key={iter}  {...item} onRemoveItem={onRemoveItem}/> )
-	}
+const List = ({list , onRemoveItem }) => {
+		/*for every Item in the list pass the item into an Item component */
+		return list.map( (item, iter) => <Item key={iter}  {...item} onRemoveItem={onRemoveItem}/> )
+}
 
 const Item = (item) => {
 	/* item fuction for rendering a single word*/
