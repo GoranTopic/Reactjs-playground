@@ -30,9 +30,10 @@ function App() {
 										isError: true,
 								};
 						case 'REMOVE_STORIES':
+								console.log(action.payload)
 								return {
 										...state, 
-										data: state.data.filter( entry => entry.word !== action.payload.word ),
+										data: state.data.filter( story => story.objectID !== action.payload.objectID ),
 								}
 						default:
 								throw new Error();
@@ -80,7 +81,7 @@ function App() {
 		const searchedStories = searchTerm.length >= 1?  stories.data.filter( entry => entry.title.includes(searchTerm.toLowerCase()) ) : []
 
 		// remove entry handler
-		const RemoveStory = story => dispatchStories({ type: 'REMOVE_ENTRY', payload: story})
+		const RemoveStory = story => dispatchStories({ type: 'REMOVE_STORIES', payload: story})
 	
 
 		return (
@@ -119,13 +120,19 @@ const InputWithLabel = ({ id, type, value, onInputChange, isFocused, children })
 			return list.map( (item, iter) => <Item key={iter}  {...item} onRemoveItem={onRemoveItem}/> )
 	}
 
-const Item = ({ title, url, author, num_comments, points, onRemoveItem }) => {
+const Item = (item) => {
 	/* item fuction for rendering a single word*/
+	const { title, url, author, created_at,  num_comments, points, onRemoveItem } = item;
 	return (
 			<>
+				<div>
 				<a href={url}>{title}</a>
-				<p>{author}</p>
-				<button type="button" onClick={() => onRemoveItem({ "title": title })}> Dissmiss </button>
+				<p>by: {author}</p>
+				<p>comments: {num_comments}</p>
+				<p>points: {points}</p>
+				<p>date: {created_at}</p>
+			</div>
+				<button type="button" onClick={() => onRemoveItem(item)}> Dissmiss </button>
 				<hr/>
 			</>
 		)
